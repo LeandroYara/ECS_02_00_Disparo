@@ -6,6 +6,7 @@ from src.ecs.components.c_input_command import CInputCommand
 from src.ecs.components.c_surface import CSurface
 from src.ecs.components.c_transform import CTransform
 from src.ecs.components.c_velocity import CVelocity
+from src.ecs.components.tags.c_tag_bullet import CTagBullet
 from src.ecs.components.tags.c_tag_enemy import CTagEnemy
 from src.ecs.components.tags.c_tag_player import CTagPlayer
 
@@ -28,7 +29,10 @@ def create_enemy_square(world:esper.World, pos:pygame.Vector2, enemy_info:dict):
                          enemy_info["color"]["b"])
     vel_max = enemy_info["velocity_max"]
     vel_min = enemy_info["velocity_min"]
-    vel_range = random.randrange(vel_min, vel_max)
+    if vel_max != vel_min:
+        vel_range = random.randrange(vel_min, vel_max)
+    else:
+        vel_range = vel_max
     velocity = pygame.Vector2(random.choice([-vel_range, vel_range]),
                               random.choice([-vel_range, vel_range]))
     enemy_entity = create_square(world, size, pos, velocity, color)
@@ -38,6 +42,15 @@ def create_enemy_spawner(world:esper.World, level_data:dict):
     spawner_entity = world.create_entity()
     world.add_component(spawner_entity,
                         CEnemySpawner(level_data["enemy_spawn_events"]))
+    
+def create_bullet_square(world:esper.World, bullet_data:dict, pos: pygame.Vector2, vel: pygame.Vector2):
+    size = pygame.Vector2(bullet_data["size"]["x"],
+                          bullet_data["size"]["y"])
+    color = pygame.Color(bullet_data["color"]["r"],
+                         bullet_data["color"]["g"],
+                         bullet_data["color"]["b"])
+    bullet_entity = create_square(world, size, pos, vel, color)
+    world.add_component(bullet_entity, CTagBullet())
     
 def create_player_square(world:esper.World, player_info:dict, player_lvl_info:dict) -> int:
     size = pygame.Vector2(player_info["size"]["x"],
@@ -57,6 +70,7 @@ def create_input_player(world:esper.World):
     input_right = world.create_entity()
     input_up = world.create_entity()
     input_down = world.create_entity()
+    input_fire = world.create_entity()
     world.add_component(input_left,
                         CInputCommand("PLAYER_LEFT", pygame.K_LEFT))
     world.add_component(input_right,
@@ -65,3 +79,5 @@ def create_input_player(world:esper.World):
                         CInputCommand("PLAYER_UP", pygame.K_UP))
     world.add_component(input_down,
                         CInputCommand("PLAYER_DOWN", pygame.K_DOWN))
+    world.add_component(input_fire,
+                        CInputCommand("PLAYER_FIRE", 1))
